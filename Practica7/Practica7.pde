@@ -10,6 +10,29 @@ class Note {
   }
 }
 
+class Chord  {
+  Note[] acorde;
+  
+  public Chord(){
+    acorde = new Note[14];  
+    for (int i = 0; i < 14; i++){
+     acorde[i] = null;
+    }
+  }
+  
+  public void addNote(boolean white,int pos){
+    acorde[pos] = new Note(white,pos);
+  }
+  
+  public void deleteNote(int pos){
+    acorde[pos] = null;
+  }
+  
+  public Note[] getChord(){
+    return acorde;
+  }
+}
+
 double position = 64;
 //My Things
 int userNote, userPos;
@@ -36,25 +59,25 @@ int[] doremiPos = {initialPos+pentagramSep*5//do
                   ,initialPos - pentagramSep
                   ,initialPos - 3*pentagramSep/2
                   };
-Note[] notas;
+Chord[] notas;
 
 
 int starterDo;
 
 SCScore score;
 
+boolean partyMode;
+
 void setup(){
   size(1700,700);
   background(255);
-  notas = new Note[32];
-  /*for (int i = 0 ; i< 14; i++){
-    notas[i] = new Note(i%2 == 0,i);
-  }*/
+  startNotas();
   starterDo = 36;
   userPos = 0;
   userNote = 0;
   pentaMode = 0;
-
+  
+  partyMode = false;
   
 }
 
@@ -102,11 +125,13 @@ void drawNotes(){
   
   
   int cont = 0;
-  for(Note note : notas){
-    if(note != null){
-      if(note.white) fill(255);
-      else fill(0);
-      circle(initialPosNote + cont*44.44 + (cont/8)*44.44,doremiPos[note.pitch],20); 
+  for(Chord chord : notas){
+    for(Note note: chord.getChord()){
+      if(note != null){
+        if(note.white) fill(255);
+        else fill(0);
+        circle(initialPosNote + cont*44.44 + (cont/8)*44.44,doremiPos[note.pitch],20); 
+      }
     }
     cont++; 
   }
@@ -115,22 +140,25 @@ void drawNotes(){
 
 
 
-
 void playMusicote(){
   score = new SCScore();
 
   int cont = 0;
-  for(Note note : notas){
-    double duration;
-    if(note != null){
-      if (note.white) duration = 1;
-      else duration = 0.5;
-      int octave = note.pitch/7;
-      int freqPlus = (note.pitch*2 - min(((note.pitch%7)/3),1));
-      //pitches[cont] = starterDo + (freqPlus - octave*2) ; 
-      score.addNote((cont/2.0) + 1,0,0,starterDo + (freqPlus - octave*2),80,duration,0.8,random(128));
-      println("   duracion =  " + duration);
-      println("   Empieza =  " + cont/2.0);
+  for(Chord chord : notas){
+    for(Note note: chord.getChord()){
+      double duration;
+      if(note != null){
+        if (note.white) duration = 1;
+        else duration = 0.5;
+        int octave = note.pitch/7;
+        int freqPlus = (note.pitch*2 - min(((note.pitch%7)/3),1));
+        //pitches[cont] = starterDo + (freqPlus - octave*2) ; 
+        float artic=64;
+        if (partyMode) artic = random(128); 
+        score.addNote((cont/2.0) + 1,0,0,starterDo + (freqPlus - octave*2),80,duration,0.8,artic);
+        println("   duracion =  " + duration);
+        println("   Empieza =  " + cont/2.0);
+      }
     }
     cont++;
   }
@@ -142,68 +170,64 @@ void playMusicote(){
   println("Terminando Musicote");
 }
 
-void updateNote(){
-  switch (pentaMode){
-    case 0:
-      notas[userPos] = null;
-      break;
-    case 1:
-      notas[userPos] = new Note(false,userNote);
-      break;
-    case 2:
-      notas[userPos] = new Note(true,userNote);
-      break;
-  }
-}
-
 
 void drawInstructions(){
   
 }
 
 
+void startNotas(){
+  notas = new Chord[32];
+  for (int i = 0; i < 32; i++){
+    notas[i] = new Chord();
+  }
+}
+
 void keyReleased(){
   if (keyCode == ENTER){
+    sc.stop();
     playMusicote();
   }
   if (key == 'B' || key == 'b'){
-    pentaMode = 2;
-    updateNote();
+    //pentaMode = 2;
+    notas[userPos].addNote(true,userNote);
   }
   
   if (key == 'N' || key == 'n'){
-    pentaMode = 1;
-    updateNote();
+    //pentaMode = 1;
+    notas[userPos].addNote(false,userNote);
   }
   
   if (key == 'M' || key == 'm'){
-    pentaMode = 0;
-    updateNote();
+    //pentaMode = 0;
+    notas[userPos].deleteNote(userNote);
+  }
+  
+  if (key == 'P' || key == 'p'){
+    partyMode = !partyMode;
   }
   
   if (key == 'R' || key == 'r'){
-    notas = new Note[32];
+    startNotas();
   }
   
   if(keyCode == UP){
     position++;
     if(userNote != 13) userNote++;
-    updateNote();
   }
   
   if(keyCode == DOWN){
     position--;
     if(userNote != 0) userNote--;
-    updateNote();
   }
   
   if(keyCode == LEFT){
     if(userPos != 0) userPos--;
-    if(notas[userPos] != null) userNote = notas[userPos].pitch;
+    //if(notas[userPos] != null) userNote = notas[userPos].pitch;
   }
   
   if(keyCode == RIGHT){
     if(userPos != 31) userPos++;
-    if(notas[userPos] != null) userNote = notas[userPos].pitch;
+    //if(notas[userPos] != null) userNote = notas[userPos].pitch;
   }
 }
