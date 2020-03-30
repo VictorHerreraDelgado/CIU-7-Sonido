@@ -179,7 +179,11 @@ void drawInstructions(){
   textAlign(CENTER);
   textSize(40);
   fill(0);
-  text("Music Composer",width/2,30);
+  text("Music Composer",width/2,45);
+  
+  if(score != null && score.isPlaying()){fill(color(0,255,0));text("Playing",width/2,300); }
+  else {fill(color(200,0,0));text("Stoped",width/2,300); }
+  fill(0);
   textAlign(LEFT);
   textSize(30);
   text("B",width/8,400);
@@ -187,18 +191,24 @@ void drawInstructions(){
   text("M",width/8,480);
   text("+",width/5*2 + 50,400);
   text("-",width/5*2 + 50,480);
+  
   text("Enter - Play",width/4,600);
   
   textSize(20);
   text("- Blanca",width/8 + 50, 397);
   text("- Negra",width/8 + 50,437);
-  text("- Borrar nota",width/8,477);
-  text("Mas tempo",(width/5*2) + 100, 397);
-  text("Tempo actual = " + tempo,(width/5*2) ,437);
-  text("Menos tempo",(width/5*2) + 100,477);
+  text("- Borrar nota",width/8 + 50,477);
+  text("Mas tempo",(width/5*2) + 120, 397);
+  text("Tempo actual = " + tempo,(width/5*2) + 50 ,437);
+  text("Menos tempo",(width/5*2) + 120,477);
   textAlign(RIGHT);
   textSize(30);
   text("Retroceso - Stop",width/4 * 3 - 50,600);
+  text("P",width/5*4 + 50,400);
+  textSize(20);
+  text("-  PartyMode",width/5*4 + 200 ,400);
+  if(partyMode){fill(color(0,200,0)); text("ON",width/5*4 +150,450); }
+  else {fill(color(200,0,0));text("OFF",width/5*4 + 150,450); }
   
   
 }
@@ -220,10 +230,12 @@ public void handleCallbacks(int callbackID) {
 }
 
 void updateSP(){
-  soundPosition += 20*dir;
+  soundPosition += 10*dir;
   if(soundPosition >128 ){soundPosition = 128; dir = -dir; }
   else if(soundPosition < 0){soundPosition = 0; dir = -dir; }
 }
+
+
 void keyReleased(){
   if (keyCode == ENTER){
     if(score != null && score.isPlaying()) score.stop();
