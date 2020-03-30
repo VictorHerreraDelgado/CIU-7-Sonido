@@ -1,4 +1,6 @@
-//import ddf.minim.*;
+
+import arb.soundcipher.*;
+
 class Note {
   boolean white;
   int pitch;
@@ -8,11 +10,8 @@ class Note {
   }
 }
 
-  
-
-
-import arb.soundcipher.*;
-
+double position = 64;
+//My Things
 int userNote, userPos;
 int pentaMode;  
 
@@ -42,7 +41,7 @@ Note[] notas;
 
 int starterDo;
 
-
+SCScore score;
 
 void setup(){
   size(1700,700);
@@ -55,18 +54,19 @@ void setup(){
   userPos = 0;
   userNote = 0;
   pentaMode = 0;
+
   
-  //minim = new Minim(this);
-  //OUT = minim.getLineOut( Minim.STEREO );
 }
 
 void draw(){
   background(255);
+  strokeWeight(1);
   drawUserPos();
-  stroke(1);
+  stroke(0);
   drawPentagramLines();
   drawNotes();
-  
+  drawInstructions();
+  drawUserNote();
   
 }
 
@@ -74,6 +74,13 @@ void drawUserPos(){
  fill(100);
  noStroke();
  rect(initialPosNote + userPos*44.44 + (userPos/8)*44.44 - 10,initialPos - 50,20,initialPos + pentagramSep * 4);
+}
+
+void drawUserNote(){
+  stroke(170);
+  strokeWeight(5);
+  float start = initialPosNote + userPos*44.44 + (userPos/8)*44.44 - 10;
+  line(start,doremiPos[userNote] ,start+20,doremiPos[userNote]);
 }
 
 void drawPentagramLines(){
@@ -110,39 +117,29 @@ void drawNotes(){
 
 
 void playMusicote(){
-  print("Tocando Musicote");
-  float[] pitches = {0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0};
-  float[] durations = {0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0};                  
-  float [] dynamics = {0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0};
+  score = new SCScore();
+
   int cont = 0;
   for(Note note : notas){
-    if(note == null){
-      dynamics[cont] = 0;
-      durations[cont] = 0.5;
-    }else{
-      if (note.white) durations[cont] = 1;
-      else durations[cont] = 0.5;
-      dynamics[cont] = 80;
+    double duration;
+    if(note != null){
+      if (note.white) duration = 1;
+      else duration = 0.5;
       int octave = note.pitch/7;
       int freqPlus = (note.pitch*2 - min(((note.pitch%7)/3),1));
-      pitches[cont] = starterDo + (freqPlus - octave*2)  ;
+      //pitches[cont] = starterDo + (freqPlus - octave*2) ; 
+      score.addNote((cont/2.0) + 1,0,0,starterDo + (freqPlus - octave*2),80,duration,0.8,random(128));
+      println("   duracion =  " + duration);
+      println("   Empieza =  " + cont/2.0);
     }
     cont++;
   }
-
-
-                
-  sc.playPhrase(pitches, dynamics, durations);
-
+  
+  //score.addPhrase(0, 0, 34,pitches,dynamics,durations,articulations,pans);
+  score.play();
+  println("Tocando Musicote");              
+  //sc.playPhrase(pitches, dynamics, durations);
+  println("Terminando Musicote");
 }
 
 void updateNote(){
@@ -157,6 +154,11 @@ void updateNote(){
       notas[userPos] = new Note(true,userNote);
       break;
   }
+}
+
+
+void drawInstructions(){
+  
 }
 
 
@@ -179,12 +181,18 @@ void keyReleased(){
     updateNote();
   }
   
+  if (key == 'R' || key == 'r'){
+    notas = new Note[32];
+  }
+  
   if(keyCode == UP){
+    position++;
     if(userNote != 13) userNote++;
     updateNote();
   }
   
   if(keyCode == DOWN){
+    position--;
     if(userNote != 0) userNote--;
     updateNote();
   }
