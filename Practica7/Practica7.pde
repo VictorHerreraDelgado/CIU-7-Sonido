@@ -32,17 +32,18 @@ class Chord  {
     return acorde;
   }
 }
-
+int soundPosition,dir;
 double position = 64;
 //My Things
 int userNote, userPos;
 int pentaMode;  
 
+int tempo;
+
 SoundCipher sc = new SoundCipher(this);
 int initialPos = 100;
 int pentagramSep = 20;
 int initialPosNote = 90;
-
 
 int[] doremiPos = {initialPos+pentagramSep*5//do
                   ,pentagramSep/2 +initialPos+pentagramSep*4
@@ -71,6 +72,7 @@ boolean partyMode;
 void setup(){
   size(1700,700);
   background(255);
+  
   startNotas();
   starterDo = 36;
   userPos = 0;
@@ -78,7 +80,9 @@ void setup(){
   pentaMode = 0;
   
   partyMode = false;
-  
+  dir = 1;
+  soundPosition = 64;
+  tempo= 120;
 }
 
 void draw(){
@@ -142,7 +146,7 @@ void drawNotes(){
 
 void playMusicote(){
   score = new SCScore();
-
+  score.tempo(tempo);
   int cont = 0;
   for(Chord chord : notas){
     for(Note note: chord.getChord()){
@@ -154,7 +158,7 @@ void playMusicote(){
         int freqPlus = (note.pitch*2 - min(((note.pitch%7)/3),1));
         //pitches[cont] = starterDo + (freqPlus - octave*2) ; 
         float artic=64;
-        if (partyMode) artic = random(128); 
+        if (partyMode){ artic = soundPosition; updateSP();}
         score.addNote((cont/2.0) + 1,0,0,starterDo + (freqPlus - octave*2),80,duration,0.8,artic);
         println("   duracion =  " + duration);
         println("   Empieza =  " + cont/2.0);
@@ -172,6 +176,30 @@ void playMusicote(){
 
 
 void drawInstructions(){
+  textAlign(CENTER);
+  textSize(40);
+  fill(0);
+  text("Music Composer",width/2,30);
+  textAlign(LEFT);
+  textSize(30);
+  text("B",width/8,400);
+  text("N",width/8,440);
+  text("M",width/8,480);
+  text("+",width/5*2 + 50,400);
+  text("-",width/5*2 + 50,480);
+  text("Enter - Play",width/4,600);
+  
+  textSize(20);
+  text("- Blanca",width/8 + 50, 397);
+  text("- Negra",width/8 + 50,437);
+  text("- Borrar nota",width/8,477);
+  text("Mas tempo",(width/5*2) + 100, 397);
+  text("Tempo actual = " + tempo,(width/5*2) ,437);
+  text("Menos tempo",(width/5*2) + 100,477);
+  textAlign(RIGHT);
+  textSize(30);
+  text("Retroceso - Stop",width/4 * 3 - 50,600);
+  
   
 }
 
@@ -183,11 +211,27 @@ void startNotas(){
   }
 }
 
+public void handleCallbacks(int callbackID) {
+
+  if(callbackID == 3) {
+
+  }
+
+}
+
+void updateSP(){
+  soundPosition += 20*dir;
+  if(soundPosition >128 ){soundPosition = 128; dir = -dir; }
+  else if(soundPosition < 0){soundPosition = 0; dir = -dir; }
+}
 void keyReleased(){
   if (keyCode == ENTER){
-    sc.stop();
+    if(score != null && score.isPlaying()) score.stop();
     playMusicote();
   }
+  
+  if (keyCode == BACKSPACE && score != null && score.isPlaying()) score.stop();
+  
   if (key == 'B' || key == 'b'){
     //pentaMode = 2;
     notas[userPos].addNote(true,userNote);
@@ -205,11 +249,23 @@ void keyReleased(){
   
   if (key == 'P' || key == 'p'){
     partyMode = !partyMode;
+    if(!partyMode) soundPosition = 64;
   }
   
   if (key == 'R' || key == 'r'){
     startNotas();
   }
+  
+  if (key == '+'){
+    tempo =min(240,tempo + 2);
+    print(tempo);
+  }
+  
+  if (key == '-'){
+    tempo =max(20,tempo - 2);
+  }
+  
+  
   
   if(keyCode == UP){
     position++;
